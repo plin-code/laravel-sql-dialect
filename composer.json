@@ -1,8 +1,8 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
     "name": "plin-code/laravel-sql-dialect",
-    "description": "Cross driver SQL helpers for Laravel: LIKE/ILIKE with wildcard escaping, year extraction from date columns, multi value normalisation.",
-    "keywords": ["PlinCode", "laravel", "eloquent", "sql", "ilike", "cross-database"],
+    "description": "Cross driver SQL helpers for Laravel: wildcard safe LIKE and ILIKE, year extraction from date columns, and filter value normalisation. No service provider, no config.",
+    "keywords": ["laravel", "eloquent", "sql", "ilike", "cross-database", "query-builder", "postgresql", "mysql", "sqlite"],
     "homepage": "https://github.com/plin-code/laravel-sql-dialect",
     "license": "MIT",
     "authors": [
