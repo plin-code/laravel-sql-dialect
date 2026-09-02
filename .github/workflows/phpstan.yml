@@ -3,7 +3,7 @@ name: PHPStan
 on:
   push:
     paths:
-      - '**.php'
+      - '**/*.php'
       - 'phpstan.neon.dist'
       - '.github/workflows/phpstan.yml'
 
@@ -26,3 +26,6 @@ jobs:
 
       - name: Run PHPStan
         run: ./vendor/bin/phpstan --error-format=github
+
+      - name: Check type coverage
+        run: ./vendor/bin/pest --type-coverage --min=100
