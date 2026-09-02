@@ -1,8 +1,3 @@
-# Release Notes
+# Changelog
 
-## [Unreleased](https://github.com/plin-code/laravel-sql-dialect/compare/v0.1.0...1.x)
-
-
-## [v0.1.0](https://github.com/plin-code/laravel-sql-dialect/compare/...v0.1.0) - 202x-xx-xx
-
-Initial pre-release.
+All notable changes to `laravel-sql-dialect` will be documented in this file.
