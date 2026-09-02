@@ -18,7 +18,7 @@ Cross driver SQL helpers for Laravel: LIKE/ILIKE with wildcard escaping, year ex
 
 ## What it solves
 
-Writing a `LIKE` filter or a "group by year" query that behaves the same on PostgreSQL, MySQL and SQLite usually means scattering `match ($driver)` (or `if/else` on `DB::connection()->getDriverName()`) through your services and repositories. This package moves that branching into three small, static, dependency free classes: `LikeOperator`, `YearExpression` and `CsvValues`. Each one takes the query builder it needs to inspect the connection from, and returns the right operator or SQL fragment for that connection's driver.
+Writing a `LIKE` filter, or a query that orders or filters by the year of a date column, so that it behaves the same on PostgreSQL, MySQL and SQLite, usually means scattering `match ($driver)` (or `if/else` on `DB::connection()->getDriverName()`) through your services and repositories. This package moves that branching into three small, static, dependency free classes: `LikeOperator`, `YearExpression` and `CsvValues`. Each one takes the query builder it needs to inspect the connection from, and returns the right operator or SQL fragment for that connection's driver.
 
 ## Installation
 
@@ -32,21 +32,17 @@ There is nothing else to do. No service provider to register, no config to publi
 
 ## `LikeOperator`
 
-`LikeOperator::applyContains()` adds a case matched, wildcard safe `LIKE` (or `ILIKE` on PostgreSQL) clause to a query. It works on any `Builder`, including the one handed to a closure for a subquery:
+`LikeOperator::applyContains()` adds a wildcard safe `LIKE` (or `ILIKE` on PostgreSQL) clause to a query.
+
+`applyContains()` and `applyContainsOnDate()` type hint `Illuminate\Database\Eloquent\Builder`. They can be called on an Eloquent builder, and inside a closure that Laravel hands one, such as the closure passed to `Eloquent\Builder::where()`. They cannot be called on a plain `Illuminate\Database\Query\Builder`, or inside a closure that receives one (for example the closure passed to `orWhereIn()`, `whereExists()` or `Query\Builder::from()`). Accepting both builder types is a known limitation, deferred to a later release.
 
 ```php
+use Illuminate\Database\Eloquent\Builder;
 use PlinCode\SqlDialect\LikeOperator;
 
 Movie::query()
     ->where(function (Builder $query) use ($term) {
         LikeOperator::applyContains($query, 'movies.title', $term);
-    })
-    ->orWhereIn('movies.id', function ($subquery) use ($term) {
-        $subquery->select('movie_id')
-            ->from('credits')
-            ->where(function ($sub) use ($term) {
-                LikeOperator::applyContains($sub, 'credits.person_name', $term);
-            });
     })
     ->get();
 ```
@@ -74,7 +70,7 @@ If all you need is a case insensitive partial match inside a [`spatie/laravel-qu
 AllowedFilter::partial('title');
 ```
 
-`LikeOperator` earns its place for hand written raw queries: concatenation with other `whereRaw()` calls, subqueries, joins, anything where you are already composing SQL by hand and need the operator, the pattern and the escaping to agree with each other across drivers. It is not a replacement for `AllowedFilter::partial()` in the common case.
+`LikeOperator` earns its place for hand written raw queries: concatenation with other `whereRaw()` calls, joins, anything where you are already composing SQL by hand and need the operator, the pattern and the escaping to agree with each other across drivers. It is not a replacement for `AllowedFilter::partial()` in the common case.
 
 ## `YearExpression`
 
