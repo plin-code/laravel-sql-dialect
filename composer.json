@@ -1,0 +1,68 @@
+{
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "plin-code/laravel-sql-dialect",
+    "description": "Cross driver SQL helpers for Laravel: LIKE/ILIKE with wildcard escaping, year extraction from date columns, multi value normalisation.",
+    "keywords": ["PlinCode", "laravel", "eloquent", "sql", "ilike", "cross-database"],
+    "homepage": "https://github.com/plin-code/laravel-sql-dialect",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Daniele Barbaro",
+            "email": "barbaro.daniele@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.3",
+        "illuminate/database": "^12.0 || ^13.0",
+        "illuminate/support": "^12.0 || ^13.0"
+    },
+    "require-dev": {
+        "driftingly/rector-laravel": "^2.0",
+        "larastan/larastan": "^3.9",
+        "laravel/pint": "^1.29",
+        "nunomaduro/collision": "^8.1",
+        "orchestra/testbench": "^10.0 || ^11.0",
+        "pestphp/pest": "^4.6",
+        "pestphp/pest-plugin-arch": "^4.0",
+        "pestphp/pest-plugin-laravel": "^4.1",
+        "pestphp/pest-plugin-type-coverage": "^4.0",
+        "phpstan/extension-installer": "^1.4",
+        "phpstan/phpstan-deprecation-rules": "^2.0",
+        "phpstan/phpstan-phpunit": "^2.0",
+        "rector/rector": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "PlinCode\\SqlDialect\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "PlinCode\\SqlDialect\\Tests\\": "tests/",
+            "Workbench\\App\\": "workbench/app/",
+            "Workbench\\Database\\Factories\\": "workbench/database/factories/"
+        }
+    },
+    "scripts": {
+        "post-autoload-dump": ["@prepare"],
+        "prepare": ["@php vendor/bin/testbench package:discover --ansi"],
+        "build": ["@php vendor/bin/testbench workbench:build --ansi"],
+        "lint": ["vendor/bin/pint --parallel"],
+        "lint:check": ["vendor/bin/pint --parallel --test"],
+        "analyse": ["vendor/bin/phpstan analyse"],
+        "rector:check": ["vendor/bin/rector process --dry-run --no-progress-bar"],
+        "test:types": ["vendor/bin/pest --type-coverage --min=100"],
+        "test:unit": ["vendor/bin/pest --parallel"],
+        "test": ["@analyse", "@lint:check", "@test:types", "@test:unit"]
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "phpstan/extension-installer": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
