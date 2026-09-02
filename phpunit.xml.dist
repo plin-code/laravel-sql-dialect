@@ -22,6 +22,11 @@
         <testsuite name="Unit">
             <directory>tests/Unit</directory>
         </testsuite>
+        <testsuite name="Feature">
+            <directory suffix="Test.php">tests</directory>
+            <exclude>tests/ArchTest.php</exclude>
+            <exclude>tests/Unit</exclude>
+        </testsuite>
     </testsuites>
     <source>
         <include>
