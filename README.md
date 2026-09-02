@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/plin-code/laravel-sql-dialect/main/art/banner.png" alt="Laravel SQL Dialect">
+</p>
+
 <div align="center">
     <h1>Laravel SQL Dialect</h1>
 </div>
