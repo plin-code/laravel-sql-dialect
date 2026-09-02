@@ -2,6 +2,20 @@
 
 All notable changes to `laravel-sql-dialect` will be documented in this file.
 
+## v1.0.1 - Metadata only - 2026-09-02
+
+### Metadata only
+
+No code changes. `src/` is byte identical to v1.0.0.
+
+This release exists to correct package metadata that was fixed after v1.0.0 was tagged. Packagist froze its snapshot of v1.0.0 at the earlier commit, correctly refusing the re-tag, so the corrected metadata needs a new version to reach it.
+
+#### What changed
+
+The package description and the Packagist keywords now match the ones shown on GitHub, and the keyword list gained the three drivers the suite actually runs against (`postgresql`, `mysql`, `sqlite`) plus `query-builder`. `CHANGELOG.md` now carries the 1.0.0 entry, which the release automation added after v1.0.0 had already been tagged.
+
+If you are on v1.0.0 there is no reason to upgrade beyond tidiness. The code you have is the code in this release.
+
 ## v1.0.0 - Cross driver SQL helpers - 2026-09-02
 
 ### 🧩 Cross driver SQL helpers for Laravel
@@ -41,5 +55,6 @@ If all you need is a case insensitive partial match inside a `spatie/laravel-que
 
 ```bash
 composer require plin-code/laravel-sql-dialect
+
 
 ```
