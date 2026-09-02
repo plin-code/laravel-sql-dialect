@@ -138,7 +138,7 @@ Non scalar entries (a nested array or an object slipped into the value by mistak
 | Drivers proved by the test suite | SQLite, MySQL 8, PostgreSQL 16 |
 | Drivers handled but not tested | MariaDB (the `mariadb` branches exist in the code but the test matrix does not run against it) |
 
-Other drivers, `sqlsrv` included, are not supported. The `match` expressions that build driver specific SQL have arms for the drivers above; a connection on any other driver falls into a default arm written for those drivers, not for it. `YearExpression::numeric()` defaults to `EXTRACT(YEAR FROM ...)` (valid on PostgreSQL and MySQL, not on SQL Server); `YearExpression::text()` and `LikeOperator::applyContainsOnDate()` default to SQLite syntax (`strftime()` and `CAST(... AS TEXT)`). On `sqlsrv` all three produce a SQL syntax error at query time rather than failing safely up front.
+Other drivers, `sqlsrv` included, are not supported. The `match` expressions that build driver specific SQL have arms for the drivers above; a connection on any other driver falls into a default arm written for those drivers, not for it. `YearExpression::numeric()` defaults to `EXTRACT(YEAR FROM ...)` (valid on PostgreSQL and MySQL, not on SQL Server); `YearExpression::text()` and `LikeOperator::applyContainsOnDate()` default to SQLite syntax (`strftime()` and `CAST(... AS TEXT)`). On `sqlsrv` all three fail at the database at query time (an unrecognised function, or an invalid type for a cast) rather than failing safely up front.
 
 ### Running the tests against the three drivers
 
