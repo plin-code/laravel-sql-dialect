@@ -10,7 +10,7 @@
     <a href="https://packagist.org/packages/plin-code/laravel-sql-dialect"><img src="https://img.shields.io/packagist/v/plin-code/laravel-sql-dialect.svg?style=flat-square" alt="Packagist"></a>
     <a href="https://packagist.org/packages/plin-code/laravel-sql-dialect"><img src="https://img.shields.io/packagist/php-v/plin-code/laravel-sql-dialect.svg?style=flat-square" alt="PHP from Packagist"></a>
     <a href="https://packagist.org/packages/plin-code/laravel-sql-dialect"><img src="https://badge.laravel.cloud/badge/plin-code/laravel-sql-dialect?style=flat" alt="Laravel versions"></a>
-    <a href="https://github.com/plin-code/laravel-sql-dialect/actions"><img alt="GitHub Workflow Status (main)" src="https://img.shields.io/github/actions/workflow/status/plin-code/laravel-sql-dialect/tests.yml?branch=main&label=Tests&style=flat-square"></a>
+    <a href="https://github.com/plin-code/laravel-sql-dialect/actions"><img alt="GitHub Workflow Status (main)" src="https://img.shields.io/github/actions/workflow/status/plin-code/laravel-sql-dialect/run-tests.yml?branch=main&label=Tests&style=flat-square"></a>
     <a href="https://packagist.org/packages/plin-code/laravel-sql-dialect"><img src="https://img.shields.io/packagist/dt/plin-code/laravel-sql-dialect.svg?style=flat-square" alt="Total Downloads"></a>
 </p>
 
@@ -50,6 +50,8 @@ Movie::query()
 `applyContains()` wraps the column through the query's grammar, picks the operator with `LikeOperator::for()`, builds the pattern with `LikeOperator::containsPattern()` and issues one `whereRaw()` call with the correct `ESCAPE` clause for the driver. `applyContainsOnDate()` does the same thing but first casts the date column to text in the right dialect (`::text` on PostgreSQL, `CAST(... AS CHAR)` on MySQL and MariaDB, `CAST(... AS TEXT)` elsewhere), for matching a partial date, month or year that is displayed rather than compared.
 
 `containsPattern()` (and the `escapeWildcards()` it calls) neutralise `%`, `_` and `\` in the search term with `addcslashes()`, so a term containing those characters is matched literally instead of being interpreted as a wildcard. That is why `applyContains()` always appends an `ESCAPE` clause: it tells the driver which character in the pattern is the escape character it just used.
+
+`$column` is interpolated straight into the raw SQL through the connection's grammar and must be a column name your own code supplies, never request input; `$term`, the search value, is always passed as a bound parameter. `Grammar::wrap()` quotes identifiers, it does not validate or escape arbitrary strings, so it is not a safeguard against passing user input as `$column`.
 
 ### Per driver behaviour
 
@@ -106,6 +108,7 @@ $query->select([
 Note that [`spatie/laravel-query-builder`](https://github.com/spatie/laravel-query-builder) **already** splits a filter value on commas before your filter class sees it, so by the time `$value` reaches a custom filter it is typically an array already. `CsvValues` does not solve splitting; it solves what comes after it, cleaning up the values before your application logic runs:
 
 ```php
+use Illuminate\Database\Eloquent\Builder;
 use PlinCode\SqlDialect\CsvValues;
 use Spatie\QueryBuilder\Filters\Filter;
 
@@ -135,9 +138,11 @@ Non scalar entries (a nested array or an object slipped into the value by mistak
 | Drivers proved by the test suite | SQLite, MySQL 8, PostgreSQL 16 |
 | Drivers handled but not tested | MariaDB (the `mariadb` branches exist in the code but the test matrix does not run against it) |
 
+Other drivers, `sqlsrv` included, are not supported. The `match` expressions that build driver specific SQL have arms for the drivers above; a connection on any other driver falls into a default arm written for those drivers, not for it. `YearExpression::numeric()` defaults to `EXTRACT(YEAR FROM ...)` (valid on PostgreSQL and MySQL, not on SQL Server); `YearExpression::text()` and `LikeOperator::applyContainsOnDate()` default to SQLite syntax (`strftime()` and `CAST(... AS TEXT)`). On `sqlsrv` all three produce a SQL syntax error at query time rather than failing safely up front.
+
 ### Running the tests against the three drivers
 
-The full suite (34 tests) runs against an in memory SQLite database by default:
+The full suite runs against an in memory SQLite database by default:
 
 ```bash
 vendor/bin/pest
