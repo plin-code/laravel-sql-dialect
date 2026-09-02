@@ -133,7 +133,7 @@ Non scalar entries (a nested array or an object slipped into the value by mistak
 
 | | Supported |
 | --- | --- |
-| PHP | 8.3, 8.4, 8.5 |
+| PHP | 8.4, 8.5 |
 | Laravel | 12, 13 (`illuminate/database` and `illuminate/support` `^12.0 \|\| ^13.0`) |
 | Drivers proved by the test suite | SQLite, MySQL 8, PostgreSQL 16 |
 | Drivers handled but not tested | MariaDB (the `mariadb` branches exist in the code but the test matrix does not run against it) |
