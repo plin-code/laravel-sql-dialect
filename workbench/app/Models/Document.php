@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * @property string $title
+ * @property string|null $summary
  * @property string|null $issued_on
  * @property string|null $recorded_at
  * @property string|null $from

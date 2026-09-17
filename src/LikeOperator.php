@@ -6,6 +6,7 @@ namespace PlinCode\SqlDialect;
 
 use Illuminate\Database\Connection;
 use Illuminate\Database\Eloquent\Builder;
+use InvalidArgumentException;
 
 final class LikeOperator
 {
@@ -31,40 +32,82 @@ final class LikeOperator
     }
 
     /**
+     * Adds `column LIKE '%term%'` (ILIKE on PostgreSQL) to the query.
+     *
+     * `$boolean` and `$not` mirror Laravel's `whereLike()`: `'or'` joins the
+     * clause with OR instead of AND, and `$not` negates it into NOT LIKE or
+     * NOT ILIKE. A NULL column never matches, negated or not.
+     *
      * @param  Builder<covariant \Illuminate\Database\Eloquent\Model>  $query
+     * @param  'and'|'or'  $boolean
      */
-    public static function applyContains(Builder $query, string $column, string $term): void
+    public static function applyContains(Builder $query, string $column, string $term, string $boolean = 'and', bool $not = false): void
     {
-        $pattern = self::containsPattern($term);
         $wrappedColumn = $query->getGrammar()->wrap($column);
-        /** @var Connection $connection */
-        $connection = $query->getConnection();
-        $operator = self::for($query);
-        $escape = self::escapeClause($connection->getDriverName());
 
-        $query->whereRaw("{$wrappedColumn} {$operator} ? {$escape}", [$pattern]);
+        self::applyPattern($query, $wrappedColumn, $term, $boolean, $not);
     }
 
     /**
      * @param  Builder<covariant \Illuminate\Database\Eloquent\Model>  $query
      */
-    public static function applyContainsOnDate(Builder $query, string $column, string $term): void
+    public static function orApplyContains(Builder $query, string $column, string $term): void
     {
-        $pattern = self::containsPattern($term);
+        self::applyContains($query, $column, $term, 'or');
+    }
+
+    /**
+     * @param  Builder<covariant \Illuminate\Database\Eloquent\Model>  $query
+     */
+    public static function applyNotContains(Builder $query, string $column, string $term): void
+    {
+        self::applyContains($query, $column, $term, 'and', true);
+    }
+
+    /**
+     * @param  Builder<covariant \Illuminate\Database\Eloquent\Model>  $query
+     */
+    public static function orApplyNotContains(Builder $query, string $column, string $term): void
+    {
+        self::applyContains($query, $column, $term, 'or', true);
+    }
+
+    /**
+     * @param  Builder<covariant \Illuminate\Database\Eloquent\Model>  $query
+     * @param  'and'|'or'  $boolean
+     */
+    public static function applyContainsOnDate(Builder $query, string $column, string $term, string $boolean = 'and', bool $not = false): void
+    {
         $wrappedColumn = $query->getGrammar()->wrap($column);
         /** @var Connection $connection */
         $connection = $query->getConnection();
-        $driver = $connection->getDriverName();
-        $operator = self::for($query);
-        $escape = self::escapeClause($driver);
 
-        $expression = match ($driver) {
+        $expression = match ($connection->getDriverName()) {
             'pgsql' => "{$wrappedColumn}::text",
             'mysql', 'mariadb' => "CAST({$wrappedColumn} AS CHAR)",
             default => "CAST({$wrappedColumn} AS TEXT)",
         };
 
-        $query->whereRaw("{$expression} {$operator} ? {$escape}", [$pattern]);
+        self::applyPattern($query, $expression, $term, $boolean, $not);
+    }
+
+    /**
+     * @param  Builder<covariant \Illuminate\Database\Eloquent\Model>  $query
+     */
+    private static function applyPattern(Builder $query, string $expression, string $term, string $boolean, bool $not): void
+    {
+        $boolean = strtolower($boolean);
+
+        if ($boolean !== 'and' && $boolean !== 'or') {
+            throw new InvalidArgumentException("The boolean must be 'and' or 'or', got '{$boolean}'.");
+        }
+
+        /** @var Connection $connection */
+        $connection = $query->getConnection();
+        $operator = ($not ? 'NOT ' : '').self::for($query);
+        $escape = self::escapeClause($connection->getDriverName());
+
+        $query->whereRaw("{$expression} {$operator} ? {$escape}", [self::containsPattern($term)], $boolean);
     }
 
     /**
