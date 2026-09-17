@@ -13,6 +13,7 @@ return new class extends Migration
         Schema::create('documents', function (Blueprint $table): void {
             $table->increments('id');
             $table->string('title');
+            $table->string('summary')->nullable();
             $table->date('issued_on')->nullable();
             $table->timestamp('recorded_at')->nullable();
             // `from` e' una parola riservata in MySQL e PostgreSQL: serve a
