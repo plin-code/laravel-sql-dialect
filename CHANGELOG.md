@@ -2,6 +2,33 @@
 
 All notable changes to `laravel-sql-dialect` will be documented in this file.
 
+## v1.1.0 - OR and negated LIKE variants - 2026-09-17
+
+### OR and negated LIKE variants
+
+`LikeOperator` can now build every LIKE clause a hand written filter usually needs, not only a positive, AND-ed one. Escaping and the per driver `ESCAPE` clause are the same as in `applyContains()`, so the new variants are just as safe on PostgreSQL, MySQL and SQLite.
+
+#### What's new
+
+Four entry points mirror Laravel's own `whereLike` family:
+
+```php
+LikeOperator::orApplyContains($query, 'title', $term);      // or title LIKE %term%
+LikeOperator::applyNotContains($query, 'title', $term);     // and title NOT LIKE %term%
+LikeOperator::orApplyNotContains($query, 'title', $term);   // or title NOT LIKE %term%
+
+```
+`applyContains()` and `applyContainsOnDate()` gained two optional arguments, `string $boolean = 'and'` and `bool $not = false`, in the same order as `whereLike($column, $value, $caseSensitive, $boolean, $not)`.
+
+#### Behaviour worth knowing
+
+- `$boolean` accepts `and` or `or` (any case). Anything else throws `InvalidArgumentException`, because Laravel writes that value straight into the SQL.
+- A `NULL` column is excluded by `NOT LIKE` as well as by `LIKE`. This is standard SQL and is now documented and covered by a test. The README shows how to keep those rows with a `whereNull()` group.
+
+#### Upgrading
+
+No breaking changes. Existing calls keep working exactly as before, since both new arguments are optional with the previous behaviour as default.
+
 ## v1.0.1 - Metadata only - 2026-09-02
 
 ### Metadata only
@@ -55,6 +82,7 @@ If all you need is a case insensitive partial match inside a `spatie/laravel-que
 
 ```bash
 composer require plin-code/laravel-sql-dialect
+
 
 
 ```
