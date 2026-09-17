@@ -34,7 +34,7 @@ There is nothing else to do. No service provider to register, no config to publi
 
 `LikeOperator::applyContains()` adds a wildcard safe `LIKE` (or `ILIKE` on PostgreSQL) clause to a query.
 
-`applyContains()` and `applyContainsOnDate()` type hint `Illuminate\Database\Eloquent\Builder`. They can be called on an Eloquent builder, and inside a closure that Laravel hands one, such as the closure passed to `Eloquent\Builder::where()`. They cannot be called on a plain `Illuminate\Database\Query\Builder`, or inside a closure that receives one (for example the closure passed to `orWhereIn()`, `whereExists()` or `Query\Builder::from()`). Accepting both builder types is a known limitation, deferred to a later release.
+`applyContains()`, its OR and negated variants, and `applyContainsOnDate()` type hint `Illuminate\Database\Eloquent\Builder`. They can be called on an Eloquent builder, and inside a closure that Laravel hands one, such as the closure passed to `Eloquent\Builder::where()`. They cannot be called on a plain `Illuminate\Database\Query\Builder`, or inside a closure that receives one (for example the closure passed to `orWhereIn()`, `whereExists()` or `Query\Builder::from()`). Accepting both builder types is a known limitation, deferred to a later release.
 
 ```php
 use Illuminate\Database\Eloquent\Builder;
@@ -48,6 +48,50 @@ Movie::query()
 ```
 
 `applyContains()` wraps the column through the query's grammar, picks the operator with `LikeOperator::for()`, builds the pattern with `LikeOperator::containsPattern()` and issues one `whereRaw()` call with the correct `ESCAPE` clause for the driver. `applyContainsOnDate()` does the same thing but first casts the date column to text in the right dialect (`::text` on PostgreSQL, `CAST(... AS CHAR)` on MySQL and MariaDB, `CAST(... AS TEXT)` elsewhere), for matching a partial date, month or year that is displayed rather than compared.
+
+### OR and negated variants
+
+`applyContains()` accepts two optional arguments that mirror Laravel's own `whereLike()`: `$boolean` (`'and'` by default, or `'or'`) and `$not` (`false` by default). `applyContainsOnDate()` accepts the same two. For readability `applyContains()` also has three named shortcuts:
+
+| Method | Clause added |
+| --- | --- |
+| `applyContains($query, $column, $term)` | `and <column> LIKE ?` |
+| `orApplyContains($query, $column, $term)` | `or <column> LIKE ?` |
+| `applyNotContains($query, $column, $term)` | `and <column> NOT LIKE ?` |
+| `orApplyNotContains($query, $column, $term)` | `or <column> NOT LIKE ?` |
+
+On PostgreSQL the operator is `ILIKE` or `NOT ILIKE`. Escaping and the `ESCAPE` clause are identical in all four. Any `$boolean` other than `'and'` or `'or'` (case insensitive) throws an `InvalidArgumentException`.
+
+An OR clause joins whatever came before it in the same `where` group, so wrap OR clauses in a closure to keep them from leaking into the rest of the query:
+
+```php
+use Illuminate\Database\Eloquent\Builder;
+use PlinCode\SqlDialect\LikeOperator;
+
+Job::query()
+    ->where(function (Builder $query) use ($keywords) {
+        foreach ($keywords as $keyword) {
+            LikeOperator::orApplyContains($query, 'title', $keyword);
+        }
+    })
+    ->where(function (Builder $query) use ($excluded) {
+        foreach ($excluded as $keyword) {
+            LikeOperator::applyNotContains($query, 'title', $keyword);
+        }
+    })
+    ->get();
+```
+
+`NULL` follows SQL's three valued logic and the package does not change it. `NULL LIKE '%x%'` and `NULL NOT LIKE '%x%'` both evaluate to `NULL`, so a row whose column is `NULL` is left out by the negated variants as well as by the positive ones. When those rows should be kept, add the null check yourself:
+
+```php
+$query->where(function (Builder $query) {
+    $query->whereNull('location');
+    LikeOperator::orApplyNotContains($query, 'location', 'onsite');
+});
+```
+
+### Escaping
 
 `containsPattern()` (and the `escapeWildcards()` it calls) neutralise `%`, `_` and `\` in the search term with `addcslashes()`, so a term containing those characters is matched literally instead of being interpreted as a wildcard. That is why `applyContains()` always appends an `ESCAPE` clause: it tells the driver which character in the pattern is the escape character it just used.
 
