@@ -32,6 +32,9 @@
         "phpstan/phpstan-phpunit": "^2.0",
         "rector/rector": "^2.0"
     },
+    "suggest": {
+        "laravel/boost": "2.5 or higher reads the AI guidelines shipped in resources/boost"
+    },
     "autoload": {
         "psr-4": {
             "PlinCode\\SqlDialect\\": "src/"
