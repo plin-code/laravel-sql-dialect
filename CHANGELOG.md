@@ -2,6 +2,22 @@
 
 All notable changes to `laravel-sql-dialect` will be documented in this file.
 
+## v1.2.0 - Laravel Boost guidelines - 2026-10-02
+
+### Laravel Boost guidelines
+
+The package now ships AI guidelines for [Laravel Boost](https://github.com/laravel/boost) in `resources/boost/guidelines/core.blade.php`.
+
+#### What's new
+
+- The guidelines steer an agent towards `LikeOperator`, `YearExpression` and `CsvValues` instead of hand written `LIKE` patterns, `YEAR()` or `EXTRACT` in raw SQL, and comma splitting. They also list the supported drivers.
+- Boost picks them up on `php artisan boost:install`, or on `php artisan boost:update --discover` in an app that already uses it. The package must be a direct requirement of the app. `laravel/boost` is only suggested, never required.
+- A drift test checks every class, method and argument count named in the guidelines against the code, and the supported drivers line against the drivers handled in `src/`, so a rename that leaves them stale fails CI.
+
+No runtime code changed.
+
+**Full Changelog**: https://github.com/plin-code/laravel-sql-dialect/compare/v1.1.0...v1.2.0
+
 ## v1.1.0 - OR and negated LIKE variants - 2026-09-17
 
 ### OR and negated LIKE variants
@@ -16,6 +32,7 @@ Four entry points mirror Laravel's own `whereLike` family:
 LikeOperator::orApplyContains($query, 'title', $term);      // or title LIKE %term%
 LikeOperator::applyNotContains($query, 'title', $term);     // and title NOT LIKE %term%
 LikeOperator::orApplyNotContains($query, 'title', $term);   // or title NOT LIKE %term%
+
 
 ```
 `applyContains()` and `applyContainsOnDate()` gained two optional arguments, `string $boolean = 'and'` and `bool $not = false`, in the same order as `whereLike($column, $value, $caseSensitive, $boolean, $not)`.
@@ -82,6 +99,7 @@ If all you need is a case insensitive partial match inside a `spatie/laravel-que
 
 ```bash
 composer require plin-code/laravel-sql-dialect
+
 
 
 
