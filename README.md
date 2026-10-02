@@ -206,6 +206,12 @@ DB_CONNECTION=pgsql DB_HOST=127.0.0.1 DB_PORT=5432 DB_DATABASE=testing DB_USERNA
 
 CI runs the same two commands against `mysql:8` and `postgres:16` service containers; see `.github/workflows/integration-tests.yml`.
 
+## AI guidelines (Laravel Boost)
+
+This package ships AI guidelines for [Laravel Boost](https://github.com/laravel/boost), at the path the Boost documentation gives package authors: `resources/boost/guidelines/core.blade.php`. It is a short, always in context brief that tells an agent to reach for `LikeOperator`, `YearExpression` and `CsvValues` instead of writing `LIKE '%...%'`, `YEAR(...)` or `explode(',', ...)` by hand, and which drivers are supported.
+
+Boost finds the guidelines by looking for a `resources/boost` folder in the packages your application requires directly, so the missing service provider makes no difference. Install Boost 2.5 or higher with `composer require laravel/boost --dev` then `php artisan boost:install`, selecting this package when Boost asks which third party guidelines to install. On an app that already has Boost installed, `php artisan boost:update --discover` offers the newly detected package. The package has to be a direct requirement of the application (listed in its `composer.json`), because Boost ignores guidelines from transitive dependencies.
+
 ## Changelog
 
 Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
