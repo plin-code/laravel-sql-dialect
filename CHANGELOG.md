@@ -2,6 +2,17 @@
 
 All notable changes to `laravel-sql-dialect` will be documented in this file.
 
+## v1.3.0 - Starts with search - 2026-11-21
+
+### Starts with search
+
+`LikeOperator` gains a prefix search with the same shape as the contains family. Wildcards in the term are literal, the term is always bound, and the operator and `ESCAPE` clause are picked per driver.
+
+- `startsWithPattern()` returns the escaped `term%` pattern.
+- `applyStartsWith()`, `orApplyStartsWith()`, `applyNotStartsWith()` and `orApplyNotStartsWith()` mirror `applyContains()` and its variants.
+
+No breaking changes. The existing methods behave exactly as before.
+
 ## v1.2.0 - Laravel Boost guidelines - 2026-10-02
 
 ### Laravel Boost guidelines
@@ -32,6 +43,7 @@ Four entry points mirror Laravel's own `whereLike` family:
 LikeOperator::orApplyContains($query, 'title', $term);      // or title LIKE %term%
 LikeOperator::applyNotContains($query, 'title', $term);     // and title NOT LIKE %term%
 LikeOperator::orApplyNotContains($query, 'title', $term);   // or title NOT LIKE %term%
+
 
 
 ```
@@ -99,6 +111,7 @@ If all you need is a case insensitive partial match inside a `spatie/laravel-que
 
 ```bash
 composer require plin-code/laravel-sql-dialect
+
 
 
 
