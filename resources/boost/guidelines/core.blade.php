@@ -21,10 +21,11 @@ Movie::query()
 @endverbatim
 
 - Variants: `LikeOperator::orApplyContains()`, `LikeOperator::applyNotContains()`, `LikeOperator::orApplyNotContains()`. Wrap OR clauses in a closure so they do not leak into the rest of the query. A `NULL` column matches neither the positive nor the negated form.
+- Prefix search (autocomplete): `LikeOperator::applyStartsWith()`, with the same `or`, `not` and `or not` variants as `applyContains()` (`orApplyStartsWith()`, `applyNotStartsWith()`, `orApplyNotStartsWith()`). Do not hand write `LIKE 'term%'`.
 - `LikeOperator::applyContainsOnDate()` matches a partial date by casting the column to text first, instead of a hand written `CAST(... AS CHAR)` or `::text`.
 - These methods take `Illuminate\Database\Eloquent\Builder` only, not `Illuminate\Database\Query\Builder` (so not inside `whereExists()` or `orWhereIn()` closures).
 - `$column` is interpolated into raw SQL: pass a column name from your code, never request input. The term is always bound.
-- Building SQL by hand: `LikeOperator::for()` returns the operator, `LikeOperator::containsPattern()` the escaped `%term%` pattern.
+- Building SQL by hand: `LikeOperator::for()` returns the operator, `LikeOperator::containsPattern()` the escaped `%term%` pattern and `LikeOperator::startsWithPattern()` the escaped `term%` pattern.
 
 ### Year of a date column
 
