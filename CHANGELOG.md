@@ -2,6 +2,17 @@
 
 All notable changes to `laravel-sql-dialect` will be documented in this file.
 
+## Unreleased
+
+### Starts with search
+
+`LikeOperator` gains a prefix search with the same shape as the contains family. Wildcards in the term are literal, the term is always bound, and the operator and `ESCAPE` clause are picked per driver.
+
+- `startsWithPattern()` returns the escaped `term%` pattern.
+- `applyStartsWith()`, `orApplyStartsWith()`, `applyNotStartsWith()` and `orApplyNotStartsWith()` mirror `applyContains()` and its variants.
+
+No breaking changes. The existing methods behave exactly as before.
+
 ## v1.2.0 - Laravel Boost guidelines - 2026-10-02
 
 ### Laravel Boost guidelines
