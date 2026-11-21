@@ -91,6 +91,27 @@ $query->where(function (Builder $query) {
 });
 ```
 
+### Starts with
+
+`applyStartsWith()` matches rows whose column begins with the term, for example an autocomplete where typing "ro" should list "Roma" and "Rovigo" but not "Monterotondo". It takes the same arguments as `applyContains()`, escapes the term the same way and binds it, but builds the pattern with `LikeOperator::startsWithPattern()` (`term%` instead of `%term%`). It type hints `Illuminate\Database\Eloquent\Builder` like the contains family, and it is case insensitive wherever `applyContains()` is.
+
+| Method | Clause added |
+| --- | --- |
+| `applyStartsWith($query, $column, $term)` | `and <column> LIKE ?` |
+| `orApplyStartsWith($query, $column, $term)` | `or <column> LIKE ?` |
+| `applyNotStartsWith($query, $column, $term)` | `and <column> NOT LIKE ?` |
+| `orApplyNotStartsWith($query, $column, $term)` | `or <column> NOT LIKE ?` |
+
+```php
+use PlinCode\SqlDialect\LikeOperator;
+
+$towns = Town::query();
+LikeOperator::applyStartsWith($towns, 'name', $term);
+$towns->limit(20)->get();
+```
+
+As with `applyContains()`, an empty term matches every row whose column is not `NULL`, and a `NULL` column never matches, negated or not.
+
 ### Escaping
 
 `containsPattern()` (and the `escapeWildcards()` it calls) neutralise `%`, `_` and `\` in the search term with `addcslashes()`, so a term containing those characters is matched literally instead of being interpreted as a wildcard. That is why `applyContains()` always appends an `ESCAPE` clause: it tells the driver which character in the pattern is the escape character it just used.
