@@ -31,6 +31,11 @@ final class LikeOperator
         return '%'.self::escapeWildcards($term).'%';
     }
 
+    public static function startsWithPattern(string $term): string
+    {
+        return self::escapeWildcards($term).'%';
+    }
+
     /**
      * Adds `column LIKE '%term%'` (ILIKE on PostgreSQL) to the query.
      *
@@ -45,7 +50,7 @@ final class LikeOperator
     {
         $wrappedColumn = $query->getGrammar()->wrap($column);
 
-        self::applyPattern($query, $wrappedColumn, $term, $boolean, $not);
+        self::applyPattern($query, $wrappedColumn, self::containsPattern($term), $boolean, $not);
     }
 
     /**
@@ -73,6 +78,45 @@ final class LikeOperator
     }
 
     /**
+     * Adds `column LIKE 'term%'` (ILIKE on PostgreSQL) to the query.
+     *
+     * `$boolean` and `$not` behave as in `applyContains()`.
+     *
+     * @param  Builder<covariant \Illuminate\Database\Eloquent\Model>  $query
+     * @param  'and'|'or'  $boolean
+     */
+    public static function applyStartsWith(Builder $query, string $column, string $term, string $boolean = 'and', bool $not = false): void
+    {
+        $wrappedColumn = $query->getGrammar()->wrap($column);
+
+        self::applyPattern($query, $wrappedColumn, self::startsWithPattern($term), $boolean, $not);
+    }
+
+    /**
+     * @param  Builder<covariant \Illuminate\Database\Eloquent\Model>  $query
+     */
+    public static function orApplyStartsWith(Builder $query, string $column, string $term): void
+    {
+        self::applyStartsWith($query, $column, $term, 'or');
+    }
+
+    /**
+     * @param  Builder<covariant \Illuminate\Database\Eloquent\Model>  $query
+     */
+    public static function applyNotStartsWith(Builder $query, string $column, string $term): void
+    {
+        self::applyStartsWith($query, $column, $term, 'and', true);
+    }
+
+    /**
+     * @param  Builder<covariant \Illuminate\Database\Eloquent\Model>  $query
+     */
+    public static function orApplyNotStartsWith(Builder $query, string $column, string $term): void
+    {
+        self::applyStartsWith($query, $column, $term, 'or', true);
+    }
+
+    /**
      * @param  Builder<covariant \Illuminate\Database\Eloquent\Model>  $query
      * @param  'and'|'or'  $boolean
      */
@@ -88,13 +132,13 @@ final class LikeOperator
             default => "CAST({$wrappedColumn} AS TEXT)",
         };
 
-        self::applyPattern($query, $expression, $term, $boolean, $not);
+        self::applyPattern($query, $expression, self::containsPattern($term), $boolean, $not);
     }
 
     /**
      * @param  Builder<covariant \Illuminate\Database\Eloquent\Model>  $query
      */
-    private static function applyPattern(Builder $query, string $expression, string $term, string $boolean, bool $not): void
+    private static function applyPattern(Builder $query, string $expression, string $pattern, string $boolean, bool $not): void
     {
         $boolean = strtolower($boolean);
 
@@ -107,7 +151,7 @@ final class LikeOperator
         $operator = ($not ? 'NOT ' : '').self::for($query);
         $escape = self::escapeClause($connection->getDriverName());
 
-        $query->whereRaw("{$expression} {$operator} ? {$escape}", [self::containsPattern($term)], $boolean);
+        $query->whereRaw("{$expression} {$operator} ? {$escape}", [$pattern], $boolean);
     }
 
     /**
